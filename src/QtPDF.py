@@ -138,8 +138,9 @@ class QtReport:
         plt.subplots_adjust(hspace=0.3)
 
         #Choose the number of contour levels
-        levels = int(self.config['ContourFormat']['nlevels'])
-        
+        nlevels = int(self.config['ContourFormat']['nlevels'])
+        levels = np.linspace(self.gminI,self.gmaxI,nlevels+1)
+
         #Compute the number of subplots
         nSubplots = len(H)
 
@@ -161,7 +162,7 @@ class QtReport:
                     
                     cs = ax[r,c].contour(H[2*r+c],V[2*r+c],I[2*r+c], levels=levels, linewidths=0.4, linestyles='dashed', colors='k') 
                     
-                    csf = ax[r,c].contourf(H[2*r+c],V[2*r+c],I[2*r+c],levels=levels, cmap='Spectral_r',vmin=self.gminI,vmax=self.gmaxI)
+                    csf = ax[r,c].contourf(H[2*r+c],V[2*r+c],I[2*r+c],levels=levels, cmap='Spectral_r',extend='both')
                     
                     ax[r,c].set_title('Light ID: {0}'.format(start_row+1+2*r+c),fontsize=10)
                     
