@@ -21,6 +21,9 @@ from weasyprint.fonts import FontConfiguration
 import QtUtils
 import QtConfigure
 
+def roundup(x):
+    return math.ceil(x/100.0)*100
+
 def grid(x, y, z, resX=100, resY=100):
 
     xi = np.linspace(min(x), max(x), resX)
@@ -139,7 +142,8 @@ class QtReport:
 
         #Choose the number of contour levels
         nlevels = int(self.config['ContourFormat']['nlevels'])
-        levels = np.linspace(self.gminI,self.gmaxI,nlevels+1)
+        levels = np.linspace(0,self.gmaxI,nlevels+1)
+        cticks = np.arange(0,self.gmaxI,2000)
 
         #Compute the number of subplots
         nSubplots = len(H)
@@ -166,7 +170,7 @@ class QtReport:
                     
                     ax[r,c].set_title('Light ID: {0}'.format(start_row+1+2*r+c),fontsize=10)
                     
-                    fig.colorbar(csf,ax=ax[r,c],shrink=0.60) 
+                    fig.colorbar(csf,ax=ax[r,c],ticks=cticks) 
         
         #set up the title and the x- and y-axis
         fig.supxlabel('Horizontal Degrees')
