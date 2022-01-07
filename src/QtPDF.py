@@ -185,6 +185,17 @@ class QtReport:
         plt.close()
         
         return
+
+    def __onePDF( self , * , html_page , page_no ):
+
+        save_as = os.path.join( self.config['Locations']['templocation'] , '{0}-{1}.pdf'.format(self.reportFileName,page_no) )
+
+        #Set base url to img folder
+        HTML( string=html_page , base_url='img' ).write_pdf(save_as) 
+
+        QtUtils.displayInfo('{0} was made...'.format(save_as))
+
+        return
     
     def __generateOnePDF( self , page_no , start_row , end_row ):
 
@@ -220,6 +231,35 @@ class QtReport:
         with open( save_as , 'w' , encoding='utf-8') as html_file: 
             html_file.write(html_page)
 
+        QtUtils.displayInfo('{0} was made...'.format(save_as))
+
+        #Export as a pdf file
+        self.__onePDF( html_page=html_page , page_no=page_no )
+
+        return
+
+    def __mergePDFs(self):
+
+        input_dir = self.config['Locations']['templocation']
+        output_dir = self.config['Locations']['reportlocation']
+
+        merge_list = []
+
+        for f in os.listdir(input_dir):
+            if f in self.pdfNames:
+                merge_list.append(os.path.join(input_dir,f))
+
+        sorted(merge_list)
+
+        merger = PyPDF2.PdfFileMerger()
+
+        for f in merge_list:
+            merger.append(f)
+
+        save_as = os.path.join(output_dir,'{0}.pdf'.format(self.reportFileName))
+        merger.write(save_as) 
+        merger.close()
+
         return
     
     def generate( self ):
@@ -249,5 +289,13 @@ class QtReport:
             self.__generateOnePDF( page_no , start_row , end_row )
 
             row = end_row+1
+
+        #Merge PDFs
+        self.__mergePDFs()
+
+        #Delete temp files
+        dir = self.config['Locations']['templocation']
+        for f in os.listdir(dir):
+           os.remove(os.path.join(dir,f))
 
         return
