@@ -21,8 +21,9 @@ from weasyprint.fonts import FontConfiguration
 import QtUtils
 import QtConfigure
 
-def roundup(x):
-    return math.ceil(x/100.0)*100
+def get_num_rows( num_entries, num_cols ):
+    return int(np.ceil(num_entries/num_cols))
+
 
 def grid(x, y, z, resX=100, resY=100):
 
@@ -123,7 +124,7 @@ class QtReport:
         V = []
         I = []
         
-        #Prepare the 4 sets of data to be plotted
+        #Prepare the specified number of sets of data to be plotted (default=6)
         for cur_id in range(start_row+1 , end_row+2):
 
             cur_df = self.df.loc[self.df['Light ID'] == cur_id]
@@ -136,8 +137,11 @@ class QtReport:
 
             H[cur_idx],V[cur_idx],I[cur_idx] = grid(H[cur_idx],V[cur_idx],I[cur_idx])
 
-        #Set up 2x2 subplots
-        fig, ax = plt.subplots(nrows=2, ncols=2,sharex=True, sharey=True)
+        #Set up M x N subplots
+        ncols = self.num_subplot_cols
+        nrows = get_num_rows(self.num_rows_per_page,ncols)
+        
+        fig, ax = plt.subplots(nrows=nrows, ncols=ncols,sharex=True, sharey=True)
         plt.subplots_adjust(hspace=0.3)
 
         #Choose the number of contour levels
@@ -148,29 +152,24 @@ class QtReport:
         #Compute the number of subplots
         nSubplots = len(H)
 
-        if nSubplots == 1:
-            ax[0,1].axis('off')
-            ax[1,0].axis('off')
-            ax[1,1].axis('off')
-        elif nSubplots == 2:
-            ax[1,0].axis('off')
-            ax[1,1].axis('off')
-        elif nSubplots == 3:
-            ax[1,1].axis('off')
+        #Determine whether to disable the axis for each (row,col)
+        for row in range(0,nrows):
+            for col in range(0,ncols):
+                if ncols*row+col < nSubplots:
+                    ax[row,col].axis('on')
+                else:
+                    ax[row,col].axis('off')
 
-        for r in range(2):
-            
-            for c in range(2):
-        
-                if 2*r+c<nSubplots: 
+        for row in range(0,nrows):
+            for col in range(0,ncols):
+                if ncols*row+col<nSubplots:   
+                    cs = ax[row,col].contour(H[ncols*row+col],V[ncols*row+col],I[ncols*row+col], levels=levels, linewidths=0.4, linestyles='dashed', colors='k') 
                     
-                    cs = ax[r,c].contour(H[2*r+c],V[2*r+c],I[2*r+c], levels=levels, linewidths=0.4, linestyles='dashed', colors='k') 
+                    csf = ax[row,col].contourf(H[ncols*row+col],V[ncols*row+col],I[ncols*row+col],levels=levels, cmap='Spectral_r',extend='both')
                     
-                    csf = ax[r,c].contourf(H[2*r+c],V[2*r+c],I[2*r+c],levels=levels, cmap='Spectral_r',extend='both')
+                    ax[row,col].set_title('Light ID: {0}'.format(start_row+1+ncols*row+col),fontsize=10)
                     
-                    ax[r,c].set_title('Light ID: {0}'.format(start_row+1+2*r+c),fontsize=10)
-                    
-                    fig.colorbar(csf,ax=ax[r,c],ticks=cticks) 
+                    fig.colorbar(csf,ax=ax[row,col],ticks=cticks) 
         
         #set up the title and the x- and y-axis
         fig.supxlabel('Horizontal Degrees')
@@ -181,7 +180,7 @@ class QtReport:
         save_as = os.path.join( self.config['Locations']['templocation'] , '{0}-{1}.png'.format(self.reportFileName,page_no))
 
         #save the plot
-        plt.savefig( save_as , dpi=400  )
+        plt.savefig( save_as , dpi=800  )
         plt.close()
         
         return
@@ -273,6 +272,7 @@ class QtReport:
     
         #Get the number of rows per page
         self.num_rows_per_page = int(self.config['ReportFormat']['numberofrowsperpage'])
+        self.num_subplot_cols = int(self.config['ReportFormat']['numberofcolumns'])
         
         #Calculate the number of pages based on the config where the number of entries per page is set
         num_of_pages = math.ceil(num_of_rows / self.num_rows_per_page)
