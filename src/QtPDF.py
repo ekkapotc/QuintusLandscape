@@ -1,29 +1,20 @@
 import os
-import math
 import configparser
 import datetime
-
 import numpy as np
 from numpy import average
-
 import pandas as pd
-
-from jinja2 import Environment, FileSystemLoader
-
 from matplotlib import pyplot as plt
 from scipy.interpolate import griddata
-
-import PyPDF2
 from scipy.interpolate.interpnd import CloughTocher2DInterpolator
+from jinja2 import Environment, FileSystemLoader
+import PyPDF2
 from weasyprint import HTML,CSS
-from weasyprint.fonts import FontConfiguration
-
 import QtUtils
 import QtConfigure
 
 def get_num_rows( num_entries, num_cols ):
-    return int(np.ceil(num_entries/num_cols))
-
+    return int(num_entries/num_cols)
 
 def grid(x, y, z, resX=100, resY=100):
 
@@ -137,10 +128,13 @@ class QtReport:
 
             H[cur_idx],V[cur_idx],I[cur_idx] = grid(H[cur_idx],V[cur_idx],I[cur_idx])
 
+        #Compute the number of subplots
+        nSubplots = len(H)
+
         #Set up M x N subplots
         ncols = self.num_subplot_cols
         nrows = get_num_rows(self.num_rows_per_page,ncols)
-        
+
         fig, ax = plt.subplots(nrows=nrows, ncols=ncols,sharex=True, sharey=True)
         plt.subplots_adjust(hspace=0.3)
 
@@ -148,9 +142,6 @@ class QtReport:
         nlevels = int(self.config['ContourFormat']['nlevels'])
         levels = np.linspace(0,self.gmaxI,nlevels+1)
         cticks = np.arange(0,self.gmaxI,2000)
-
-        #Compute the number of subplots
-        nSubplots = len(H)
 
         #Determine whether to disable the axis for each (row,col)
         for row in range(0,nrows):
@@ -276,7 +267,7 @@ class QtReport:
         self.num_subplot_cols = int(self.config['ReportFormat']['numberofcolumns'])
         
         #Calculate the number of pages based on the config where the number of entries per page is set
-        num_of_pages = math.ceil(num_of_rows / self.num_rows_per_page)
+        num_of_pages = int(np.ceil(num_of_rows / self.num_rows_per_page))
 
         row = 0
         for page_no in range( 1 , num_of_pages+1 ):
