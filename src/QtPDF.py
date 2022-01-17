@@ -160,6 +160,7 @@ class QtReport:
                 else:
                     ax[row,col].axis('off')
 
+        #plot the contour for each entry
         for row in range(0,nrows):
             for col in range(0,ncols):
                 if ncols*row+col<nSubplots:   
@@ -180,7 +181,7 @@ class QtReport:
         save_as = os.path.join( self.config['Locations']['templocation'] , '{0}-{1}.png'.format(self.reportFileName,page_no))
 
         #save the plot
-        plt.savefig( save_as , dpi=800  )
+        plt.savefig( save_as , dpi=400  )
         plt.close()
         
         return
