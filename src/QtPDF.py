@@ -145,7 +145,7 @@ class QtReport:
         #Set up plots
         nrows = self.num_rows_per_page
 
-        fig, ax = plt.subplots(nrows=1, ncols=nrows,figsize=(60,10))
+        fig, ax = plt.subplots(nrows=1, ncols=nrows,figsize=(50,6))
         plt.subplots_adjust(wspace=0.01,left=0.025, right=1.0)
 
         #Choose the number of contour levels
@@ -167,7 +167,7 @@ class QtReport:
                     
                 csf = ax[row].contourf(H[row],V[row],I[row],levels=levels, cmap='Spectral_r',extend='both')
                     
-                ax[row].plot([Hmax[row]],[Vmax[row]],marker='+',color='black')
+                ax[row].plot([Hmax[row]],[Vmax[row]],marker='X',color='black')
 
                 ax[row].set_title('Light ID: {0}'.format(start_row+row+1),fontsize=10)
 
