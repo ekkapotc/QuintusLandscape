@@ -212,7 +212,7 @@ class QtReport:
         #Convert the dataframe into an HTML table, excluding the index column
         m_table = cur_df.to_html(index=True) 
 
-        datetime_of_report = datetime.datetime.today()
+        #datetime_of_report = datetime.datetime.today()
 
          #Render each page 
         html_page =  self.template.render(
@@ -222,8 +222,8 @@ class QtReport:
                                     air_port_name=self.airportName,
                                     way_name=self.wayName,
                                     agent_name=self.agentName,  
-                                    date_of_report=QtUtils.getDate(datetime_of_report),
-                                    time_of_report=QtUtils.getTime(datetime_of_report),
+                                    date_of_report=QtUtils.getDate(self.datetime_of_report),
+                                    time_of_report=QtUtils.getTime(self.datetime_of_report),
                                     plot_path='{0}-{1}.png'.format(self.reportFileName,page_no)   
                                 )
 
@@ -271,6 +271,9 @@ class QtReport:
         file_loader = FileSystemLoader(self.config['Locations']['templatelocation']) 
         env = Environment(loader=file_loader,trim_blocks=True)
         self.template = env.get_template('template.html') 
+
+        #Get date and time
+        self.datetime_of_report = datetime.datetime.today()
 
         #Get the total number of entries
         num_of_rows  = self.mtab_df.shape[0]
