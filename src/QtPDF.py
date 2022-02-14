@@ -114,29 +114,39 @@ class QtReport:
         H = []
         V = []
         I = []
+        Hmax = []
+        Vmax = []
         
         #Prepare the specified number of sets of data to be plotted (default=6)
         for cur_id in range(start_row+1 , end_row+2):
 
             cur_df = self.df.loc[self.df['Light ID'] == cur_id]
 
+            imax = cur_df['I'].max()
+            maxIDF = self.df.loc[self.df['I'] == imax]
+            hmax = maxIDF.iloc[0]['H']
+            vmax = maxIDF.iloc[0]['V']
+
+            #print('Light ID {} Hmax {} Vmax {}'.format(cur_id,hmax,vmax))
+
             cur_idx = (cur_id-1)%self.num_rows_per_page
 
             H.append(cur_df['H'])
             V.append(cur_df['V'])
             I.append(cur_df['I'])
+            Hmax.append(hmax)
+            Vmax.append(vmax)
 
             H[cur_idx],V[cur_idx],I[cur_idx] = grid(H[cur_idx],V[cur_idx],I[cur_idx])
 
         #Compute the number of subplots
         nSubplots = len(H)
 
-        #Set up M x N subplots
-        ncols = self.num_subplot_cols
-        nrows = get_num_rows(self.num_rows_per_page,ncols)
+        #Set up plots
+        nrows = self.num_rows_per_page
 
-        fig, ax = plt.subplots(nrows=nrows, ncols=ncols,sharex=True, sharey=True)
-        plt.subplots_adjust(hspace=0.3)
+        fig, ax = plt.subplots(nrows=1, ncols=nrows,figsize=(60,10))
+        plt.subplots_adjust(wspace=0.01,left=0.025, right=1.0)
 
         #Choose the number of contour levels
         nlevels = int(self.config['ContourFormat']['nlevels'])
@@ -145,34 +155,37 @@ class QtReport:
 
         #Determine whether to disable the axis for each (row,col)
         for row in range(0,nrows):
-            for col in range(0,ncols):
-                if ncols*row+col < nSubplots:
-                    ax[row,col].axis('on')
+                if row < nSubplots:
+                    ax[row].axis('on')
                 else:
-                    ax[row,col].axis('off')
+                    ax[row].axis('off')
 
         #plot the contour for each entry
         for row in range(0,nrows):
-            for col in range(0,ncols):
-                if ncols*row+col<nSubplots:   
-                    cs = ax[row,col].contour(H[ncols*row+col],V[ncols*row+col],I[ncols*row+col], levels=levels, linewidths=0.4, linestyles='dashed', colors='k') 
+            if row <nSubplots:   
+                cs = ax[row].contour(H[row],V[row],I[row], levels=levels, linewidths=0.4, linestyles='dashed', colors='k') 
                     
-                    csf = ax[row,col].contourf(H[ncols*row+col],V[ncols*row+col],I[ncols*row+col],levels=levels, cmap='Spectral_r',extend='both')
+                csf = ax[row].contourf(H[row],V[row],I[row],levels=levels, cmap='Spectral_r',extend='both')
                     
-                    ax[row,col].set_title('Light ID: {0}'.format(start_row+1+ncols*row+col),fontsize=10)
-                    
-                    fig.colorbar(csf,ax=ax[row,col],ticks=cticks) 
-        
-        #set up the title and the x- and y-axis
+                ax[row].plot([Hmax[row]],[Vmax[row]],marker='+',color='black')
+
+                ax[row].set_title('Light ID: {0}'.format(start_row+row+1),fontsize=10)
+
         fig.supxlabel('Horizontal Degrees')
         fig.supylabel('Vertical Degrees')
         fig.suptitle('Vertical Scanning')
+
+        fig.subplots_adjust(right=0.8)
+        bar_ax = fig.add_axes([0.82, 0.15, 0.001, 0.80])
+        fig.colorbar(csf,cax=bar_ax,ticks=cticks) 
+        #set up the title and the x- and y-axis
+        
 
         #save the plot as an image file
         save_as = os.path.join( self.config['Locations']['templocation'] , '{0}-{1}.png'.format(self.reportFileName,page_no))
 
         #save the plot
-        plt.savefig( save_as , dpi=400  )
+        plt.savefig( save_as , dpi=400 ,bbox_inches='tight' )
         plt.close()
         
         return
@@ -264,7 +277,6 @@ class QtReport:
     
         #Get the number of rows per page
         self.num_rows_per_page = int(self.config['ReportFormat']['numberofrowsperpage'])
-        self.num_subplot_cols = int(self.config['ReportFormat']['numberofcolumns'])
         
         #Calculate the number of pages based on the config where the number of entries per page is set
         num_of_pages = int(np.ceil(num_of_rows / self.num_rows_per_page))
