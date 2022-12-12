@@ -18,7 +18,7 @@ print('Generating {0} light sources...\n'.format(light_num))
 columns =('Light ID','%ICAO','I','H','V','C','S')
 
 possible_colors   =['G', 'W', 'R', 'Y']
-possible_outcomes =[u'\u2713', u'\u2717']
+possible_outcomes =['P', 'F']
 
 light_ids   = []
 ICAOs = []

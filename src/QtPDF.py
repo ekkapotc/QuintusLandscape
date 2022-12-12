@@ -13,9 +13,6 @@ from weasyprint import HTML,CSS
 import QtUtils
 import QtConfigure
 
-def get_num_rows( num_entries, num_cols ):
-    return int(num_entries/num_cols)
-
 def grid(x, y, z, resX=100, resY=100):
 
     xi = np.linspace(min(x), max(x), resX)
@@ -211,10 +208,8 @@ class QtReport:
 
         #Convert the dataframe into an HTML table, excluding the index column
         m_table = cur_df.to_html(index=True) 
-
-        #datetime_of_report = datetime.datetime.today()
-
-         #Render each page 
+        
+        #Render each page 
         html_page =  self.template.render(
                                     m_table=m_table,
                                     page_no=page_no, 
@@ -253,7 +248,8 @@ class QtReport:
             if f in self.pdfNames:
                 merge_list.append(os.path.join(input_dir,f))
 
-        sorted(merge_list)
+        merge_list.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
+        #sorted(merge_list)
 
         merger = PyPDF2.PdfFileMerger()
 
